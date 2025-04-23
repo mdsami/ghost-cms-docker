@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx_proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/nginx/certs:/etc/nginx/certs:rw
+      - /etc/nginx/vhost.d:/etc/nginx/vhost.d
+      - /usr/share/nginx/html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: nginx_proxy_acme
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy
+    environment:
+      DEFAULT_EMAIL: "your@email.com"
+    volumes:
+      - /etc/nginx/certs:/etc/nginx/certs:rw
+      - /etc/nginx/vhost.d:/etc/nginx/vhost.d
+      - /usr/share/nginx/html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  mysql:
+    image: mysql:8
+    container_name: ghost_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: ghostdb
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ghostpass
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  ghost:
+    image: ghost:5-alpine
+    container_name: ghost_cms
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    environment:
+      VIRTUAL_HOST: example.com
+      LETSENCRYPT_HOST: example.com
+      LETSENCRYPT_EMAIL: your@email.com
+      url: https://example.com
+      database__client: mysql
+      database__connection__host: mysql
+      database__connection__user: ghost
+      database__connection__password: rootpass
+      database__connection__database: ghostdb
+    volumes:
+      - ghost_content:/var/lib/ghost/content
+
+volumes:
+  ghost_content:
+  mysql_data:

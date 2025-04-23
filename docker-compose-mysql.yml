@@ -1,0 +1,30 @@
+services:
+  ghost:
+    image: ghost:latest⁠
+    ports:
+      - "2368:2368"
+    environment:
+      url: http://localhost:2368
+      database__client: mysql
+      database__connection__host: mysql
+      database__connection__user: ghost
+      database__connection__password: ghostpass
+      database__connection__database: ghostdb
+    depends_on:
+      - mysql
+    volumes:
+      - ghost_content:/var/lib/ghost/content
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: ghostdb
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ghostpass
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  ghost_content:
+  mysql_data:

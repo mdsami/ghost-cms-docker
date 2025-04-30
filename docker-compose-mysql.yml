@@ -1,30 +1,38 @@
+version: '3'
 services:
+
   ghost:
-    image: ghost:latest⁠
-    ports:
-      - "2368:2368"
-    environment:
-      url: http://localhost:2368
-      database__client: mysql
-      database__connection__host: mysql
-      database__connection__user: ghost
-      database__connection__password: ghostpass
-      database__connection__database: ghostdb
+    image: ghost:latest
+    restart: always
     depends_on:
-      - mysql
-    volumes:
-      - ghost_content:/var/lib/ghost/content
-
-  mysql:
-    image: mysql:8
+      - db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: ghostdb
-      MYSQL_USER: ghost
-      MYSQL_PASSWORD: ghostpass
+      url: http://localhost
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: root
+      database__connection__password: root
+      database__connection__database: ghost
     volumes:
-      - mysql_data:/var/lib/mysql
+        - ../content:/var/lib/ghost/content
+        
+  db:
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ../mysql:/var/lib/mysql
 
-volumes:
-  ghost_content:
-  mysql_data:
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - '8080:80'
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root

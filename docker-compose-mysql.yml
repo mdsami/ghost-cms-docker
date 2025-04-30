@@ -3,11 +3,13 @@ services:
 
   ghost:
     image: ghost:latest
+    ports:
+      - 2368:2368
     restart: always
     depends_on:
       - db
     environment:
-      url: http://localhost
+      url: https://hostbrine.com
       database__client: mysql
       database__connection__host: db
       database__connection__user: root
